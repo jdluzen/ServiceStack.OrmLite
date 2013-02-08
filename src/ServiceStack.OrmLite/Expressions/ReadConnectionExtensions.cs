@@ -130,10 +130,14 @@ namespace ServiceStack.OrmLite
             return dbConn.Exec(dbCmd => dbCmd.Select(expression));
         }
 
-        public static List<T> SelectParameterized<T>(this IDbConnection dbConn, Expression<Func<T, bool>> predicate)
+        /// <summary>
+        /// Performs the same function as Select() except arguments are passed as parameters to the generated SQL.
+        /// Currently does not support complex SQL.## ,  .StartsWith(), EndsWith() and Contains() operators
+        /// </summary>
+        public static List<T> SelectParam<T>(this IDbConnection dbConn, Expression<Func<T, bool>> predicate)
             where T : new ()
         {
-            return dbConn.Exec(dbCmd => dbCmd.SelectParametized(predicate));
+            return dbConn.Exec(dbCmd => dbCmd.SelectParam(predicate));
         }
 
         public static T First<T>(this IDbConnection dbConn, Expression<Func<T, bool>> predicate)
@@ -171,6 +175,25 @@ namespace ServiceStack.OrmLite
             where T : new()
         {
             return dbConn.Exec(dbCmd => dbCmd.GetScalar(field, predicate));
+        }
+
+        public static long Count<T>(this IDbConnection dbConn, SqlExpressionVisitor<T> expression)
+            where T : new()
+        {
+            return dbConn.Exec(dbCmd => dbCmd.Count(expression));
+        }
+
+        public static long Count<T>(this IDbConnection dbConn, Expression<Func<T, bool>> expression)
+            where T : new()
+        {
+            return dbConn.Exec(dbCmd => dbCmd.Count(expression));
+        }
+
+        public static long Count<T>(this IDbConnection dbConn)
+            where T : new()
+        {
+            SqlExpressionVisitor<T> expression = OrmLiteConfig.DialectProvider.ExpressionVisitor<T>();
+            return dbConn.Exec(dbCmd => dbCmd.Count(expression));
         }
     }
 }

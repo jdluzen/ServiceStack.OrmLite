@@ -8,10 +8,10 @@ namespace ServiceStack.OrmLite
 {
 	public static class ReadExtensions
 	{
-        public static SqlExpressionVisitor<T> CreateExpression<T>()
-        {
-            return OrmLiteConfig.DialectProvider.ExpressionVisitor<T>();            
-        }
+		public static SqlExpressionVisitor<T> CreateExpression<T>()
+		{
+			return OrmLiteConfig.DialectProvider.ExpressionVisitor<T>();            
+		}
 
 		public static List<T> Select<T>(this IDbCommand dbCmd, Expression<Func<T, bool>> predicate)
 			where T : new()
@@ -45,7 +45,7 @@ namespace ServiceStack.OrmLite
 			}
 		}
 
-        public static List<T> SelectParametized<T>(this IDbCommand dbCmd, Expression<Func<T, bool>> predicate)
+        public static List<T> SelectParam<T>(this IDbCommand dbCmd, Expression<Func<T, bool>> predicate)
     where T : new()
         {
             var ev = OrmLiteConfig.DialectProvider.ExpressionVisitor<T>();
@@ -131,11 +131,35 @@ namespace ServiceStack.OrmLite
 			string sql = ev.ToSelectStatement();
 			return dbCmd.GetScalar<TKey>(sql);
 		}
+
+        public static long Count<T>(this IDbCommand dbCmd)
+            where T : new()
+        {
+            SqlExpressionVisitor<T> expression = OrmLiteConfig.DialectProvider.ExpressionVisitor<T>();
+            string sql = expression.ToCountStatement();
+            return dbCmd.GetScalar<long>(sql);
+        }
+
+        public static long Count<T>(this IDbCommand dbCmd, SqlExpressionVisitor<T> expression)
+            where T : new()
+        {
+            string sql = expression.ToCountStatement();
+            return dbCmd.GetScalar<long>(sql);
+        }
+
+        public static long Count<T>(this IDbCommand dbCmd, Expression<Func<T, bool>> predicate)
+            where T : new()
+        {
+            var ev = OrmLiteConfig.DialectProvider.ExpressionVisitor<T>();
+            ev.Where(predicate);
+            string sql = ev.ToCountStatement();
+            return dbCmd.GetScalar<long>(sql);
+        }
 		
 		private static T ConvertTo<T>(IDataReader dataReader)
             where T : new()
         {
-			var fieldDefs = ModelDefinition<T>.Definition.FieldDefinitionsArray;
+			var fieldDefs = ModelDefinition<T>.Definition.AllFieldDefinitionsArray;
 
 			using (dataReader)
 			{
@@ -166,7 +190,7 @@ namespace ServiceStack.OrmLite
 		private static List<T> ConvertToList<T>(IDataReader dataReader)
 			where T : new()
 		{
-            var fieldDefs = ModelDefinition<T>.Definition.FieldDefinitionsArray;
+			var fieldDefs = ModelDefinition<T>.Definition.AllFieldDefinitionsArray;
 			var fieldDefCache = new Dictionary<int, FieldDefinition>();
 
 			var to = new List<T>();

@@ -48,6 +48,12 @@ namespace SqliteExpressionsTest
             Console.WriteLine("Join Test");
             JoinTest.Test();
 
+            Console.WriteLine("Ignored Field Select Test");
+            IgnoredFieldSelectTest.Test();
+
+            Console.WriteLine("Count Test");
+            CountTest.Test();
+
 			OrmLiteConfig.DialectProvider = SqliteOrmLiteDialectProvider.Instance;
 			SqlExpressionVisitor<Author> ev = OrmLiteConfig.DialectProvider.ExpressionVisitor<Author>();
 									
